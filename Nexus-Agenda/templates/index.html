@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Agenda</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <h1>NEXUS</h1>
+        <p class="subtitle">NEXUS Agenda</p>
+
+        <nav>
+            <a href="/" class="active">Painel inicial</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/servicos">Serviços</a>
+            <a href="/agendamentos">Agendamentos</a>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div>
+                <h2>Painel inicial</h2>
+                <p>Bem-Vindo a Nexus Agenda.</p>
+            </div>
+        </header>
+
+        <section class="cards">
+            <article class="card">
+                <p>Total de clientes</p>
+                <h3>{{ total_clientes }}</h3>
+            </article>
+
+            <article class="card">
+                <p>Serviços cadastrados</p>
+                <h3>{{ total_servicos }}</h3>
+            </article>
+
+            <article class="card">
+                <p>Agendamentos</p>
+                <h3>{{ total_agendamentos }}</h3>
+            </article>
+        </section>
+
+        <section class="welcome">
+            <h3>Seu negócio do melhor jeito.</h3>
+            <p>
+                Gerencie Clientes, Serviços e Horários em um único lugar.
+            </p>
+        </section>
+    </main>
+       <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
+</body>
+</html>

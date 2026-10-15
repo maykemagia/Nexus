@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços | NEXUS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <h1>NEXUS</h1>
+        <p class="subtitle">NEXUS Agenda</p>
+
+        <nav>
+            <a href="/">Painel inicial</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/servicos" class="active">Serviços</a>
+            <a href="/agendamentos">Agendamentos</a>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div>
+                <h2>Serviços</h2>
+                <p>Gerencie os serviços oferecidos pela sua empresa.</p>
+            </div>
+        </header>
+
+        {% if request.args.get('erro') == 'excluir' %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível excluir este serviço. Ele pode estar
+                vinculado a agendamentos. Verifique os agendamentos
+                relacionados antes de tentar novamente.
+            </div>
+        {% elif request.args.get('erro') %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível concluir a operação. Confira os dados e tente novamente.
+            </div>
+        {% elif request.args.get('sucesso') == 'criado' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Serviço cadastrado com sucesso.
+            </div>
+        {% elif request.args.get('sucesso') == 'editado' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Serviço atualizado com sucesso.
+            </div>
+        {% elif request.args.get('sucesso') == 'excluido' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Serviço excluído com sucesso.
+            </div>
+        {% endif %}
+
+        <section class="welcome">
+            <h3>Cadastrar serviço</h3>
+            <p>Preencha os dados para adicionar um novo serviço.</p>
+
+            <form action="{{ url_for('servicos') }}" method="POST" class="service-form">
+                <div class="form-group">
+                    <label for="nome">Nome do serviço</label>
+                    <input type="text" id="nome" name="nome"
+                           placeholder="Ex.: Corte de cabelo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="preco">Preço (R$)</label>
+                    <input type="number" id="preco" name="preco"
+                           placeholder="0.00" min="0" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracao_minutos">Duração (minutos)</label>
+                    <input type="number" id="duracao_minutos"
+                           name="duracao_minutos" min="1" required>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Cadastrar serviço
+                </button>
+            </form>
+        </section>
+
+        <section class="welcome">
+            <h3>Serviços cadastrados</h3>
+
+            {% if servicos %}
+                <div class="tabela-wrapper">
+                    <table class="tabela-nexus">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Serviço</th>
+                                <th>Preço</th>
+                                <th>Duração</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servico in servicos %}
+                            <tr>
+                                <td>{{ servico[0] }}</td>
+                                <td>{{ servico[1] }}</td>
+                                <td>R$ {{ "%.2f"|format(servico[2]|float) }}</td>
+                                <td>{{ servico[3] }} min</td>
+                                <td>
+                                    <div class="acoes-tabela">
+                                        <a class="btn-editar"
+                                           href="{{ url_for('editar_servico', id_servico=servico[0]) }}">
+                                            Editar
+                                        </a>
+
+                                        <form method="POST"
+                                              action="{{ url_for('excluir_servico', id_servico=servico[0]) }}"
+                                              onsubmit="return confirm('Deseja realmente excluir este serviço?');">
+                                            <button type="submit" class="btn-excluir">
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>Nenhum serviço cadastrado.</p>
+            {% endif %}
+        </section>
+    </main>
+
+       <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
+</body>
+</html>
+

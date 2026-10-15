@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos | NEXUS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <h1>NEXUS</h1>
+        <p class="subtitle">NEXUS Agenda</p>
+        <nav>
+            <a href="/">Painel inicial</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/servicos">Serviços</a>
+            <a href="/agendamentos" class="active">Agendamentos</a>
+        </nav>
+    </aside>
+
+    <main class="container agendamentos-container">
+
+        <header class="agendamentos-header">
+            <div>
+                <span class="nexus-label">NEXUS / AGENDA</span>
+                <h1>Agendamentos</h1>
+                <p>Gerencie os horários e acompanhe os atendimentos.</p>
+            </div>
+
+            <button type="button" class="btn-nexus"
+                    onclick="document.getElementById('form-agendamento').classList.toggle('oculto')">
+                + Novo agendamento
+            </button>
+        </header>
+
+        {% if request.args.get('erro') == 'excluir' %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível excluir o agendamento. Verifique os dados e tente novamente.
+            </div>
+        {% elif request.args.get('erro') %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível concluir a operação. Confira os dados e tente novamente.
+            </div>
+        {% elif request.args.get('sucesso') == 'criado' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Agendamento criado com sucesso.
+            </div>
+        {% elif request.args.get('sucesso') == 'editado' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Agendamento atualizado com sucesso.
+            </div>
+        {% elif request.args.get('sucesso') == 'excluido' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Agendamento excluído com sucesso.
+            </div>
+        {% endif %}
+
+        <section id="form-agendamento" class="agendamentos-card oculto">
+            <h2>Novo agendamento</h2>
+
+            <form action="{{ url_for('agendamentos') }}" method="POST"
+                  class="agendamentos-form">
+
+                <div class="campo">
+                    <label for="id_cliente">Cliente</label>
+                    <select id="id_cliente" name="id_cliente" required>
+                        <option value="">Selecione o cliente</option>
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente[0] }}">{{ cliente[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="id_servico">Serviço</label>
+                    <select id="id_servico" name="id_servico" required>
+                        <option value="">Selecione o serviço</option>
+                        {% for servico in servicos %}
+                            <option value="{{ servico[0] }}">{{ servico[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="data_agendamento">Data</label>
+                    <input type="date" id="data_agendamento"
+                           name="data_agendamento" required>
+                </div>
+
+                <div class="campo">
+                    <label for="horario">Horário</label>
+                    <input type="time" id="horario" name="horario" required>
+                </div>
+
+                <div class="campo">
+                    <label for="status_agendamento">Status</label>
+                    <select id="status_agendamento" name="status_agendamento" required>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Confirmado">Confirmado</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button type="button" class="btn-secundario"
+                            onclick="document.getElementById('form-agendamento').classList.add('oculto')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-nexus">
+                        Salvar agendamento
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="agendamentos-card">
+            <div class="tabela-header">
+                <div>
+                    <h2>Todos os agendamentos</h2>
+                    <p>Confira os registros cadastrados.</p>
+                </div>
+                <span class="contador">{{ agendamentos|length }} registros</span>
+            </div>
+
+            <div class="tabela-wrapper">
+                <table class="tabela-nexus">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Serviço</th>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for agendamento in agendamentos %}
+                        <tr>
+                            <td>#{{ agendamento[0] }}</td>
+                            <td>{{ agendamento[1] }}</td>
+                            <td>{{ agendamento[2] }}</td>
+                            <td>{{ agendamento[3] }}</td>
+                            <td>{{ agendamento[4] }}</td>
+                            <td>
+                                <span class="status-agendamento">
+                                    {{ agendamento[5] }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="acoes-tabela">
+                                    <a class="btn-editar"
+                                       href="{{ url_for('editar_agendamento', id_agendamento=agendamento[0]) }}">
+                                        Editar
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{{ url_for('excluir_agendamento', id_agendamento=agendamento[0]) }}"
+                                          onsubmit="return confirm('Deseja realmente excluir este agendamento?');">
+                                        <button type="submit" class="btn-excluir">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="tabela-vazia">
+                                Nenhum agendamento cadastrado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+        <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
+</body>
+</html>

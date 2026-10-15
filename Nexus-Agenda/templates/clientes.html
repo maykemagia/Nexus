@@ -1,0 +1,108 @@
+!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Clientes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <h1>NEXUS</h1>
+        <p class="subtitle">NEXUS Agenda</p>
+
+        <nav>
+            <a href="/">Painel inicial</a>
+            <a href="/clientes" class="active">Clientes</a>
+            <a href="/servicos">Serviços</a>
+            <a href="/agendamentos">Agendamentos</a>
+        </nav>
+    </aside>
+
+    <main>
+        {% if request.args.get('erro') == 'excluir' %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível excluir este cliente porque ele pode ter
+                agendamentos vinculados. Verifique os agendamentos antes
+                de tentar novamente.
+            </div>
+        {% elif request.args.get('erro') %}
+            <div class="mensagem-sistema mensagem-erro">
+                Não foi possível concluir a operação. Tente novamente.
+            </div>
+        {% elif request.args.get('sucesso') == 'excluido' %}
+            <div class="mensagem-sistema mensagem-sucesso">
+                Cliente excluído com sucesso.
+            </div>
+        {% endif %}
+
+        <header class="topbar">
+            <div>
+                <h2>Clientes</h2>
+                <p>Consulte e gerencie os clientes cadastrados.</p>
+            </div>
+        </header>
+
+        <section class="welcome">
+            <div class="cabecalho-lista">
+                <h3>Lista de Clientes</h3>
+                <a href="/clientes/cadastrar" class="btn-cadastrar">
+                    + Cadastrar Cliente
+                </a>
+            </div>
+
+            {% if clientes %}
+                <div class="tabela-wrapper">
+                    <table class="tabela-nexus">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr>
+                                <td>{{ cliente[0] }}</td>
+                                <td>{{ cliente[1] }}</td>
+                                <td>{{ cliente[2] }}</td>
+
+                                <td>
+                                    <div class="acoes-tabela">
+                                        <a
+                                            class="btn-editar"
+                                            href="{{ url_for('editar_cliente', id_cliente=cliente[0]) }}"
+                                        >
+                                            Editar
+                                        </a>
+
+                                        <form
+                                            action="{{ url_for('excluir_cliente', id_cliente=cliente[0]) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Tem certeza de que deseja excluir este cliente?');"
+                                        >
+                                            <button
+                                                type="submit"
+                                                class="btn-excluir"
+                                            >
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>Nenhum cliente cadastrado.</p>
+            {% endif %}
+        </section>
+    </main>
+        <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
+</body>
+</html>

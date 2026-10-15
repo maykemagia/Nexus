@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar agendamento | NEXUS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <aside class="sidebar">
+        <h1>NEXUS</h1>
+        <p class="subtitle">NEXUS Agenda</p>
+        <nav>
+            <a href="/">Painel inicial</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/servicos">Serviços</a>
+            <a href="/agendamentos" class="active">Agendamentos</a>
+        </nav>
+    </aside>
+
+    <main class="container agendamentos-container">
+        <header class="agendamentos-header">
+            <div>
+                <span class="nexus-label">NEXUS / AGENDA</span>
+                <h1>Editar agendamento #{{ agendamento[0] }}</h1>
+                <p>Altere os dados do atendimento.</p>
+            </div>
+        </header>
+
+        <section class="agendamentos-card">
+            <form method="POST"
+                  action="{{ url_for('editar_agendamento', id_agendamento=agendamento[0]) }}"
+                  class="agendamentos-form">
+
+                <div class="campo">
+                    <label for="id_cliente">Cliente</label>
+                    <select id="id_cliente" name="id_cliente" required>
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente[0] }}"
+                                {% if cliente[0] == agendamento[1] %}selected{% endif %}>
+                                {{ cliente[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="id_servico">Serviço</label>
+                    <select id="id_servico" name="id_servico" required>
+                        {% for servico in servicos %}
+                            <option value="{{ servico[0] }}"
+                                {% if servico[0] == agendamento[2] %}selected{% endif %}>
+                                {{ servico[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="data_agendamento">Data</label>
+                    <input type="date" id="data_agendamento"
+                           name="data_agendamento"
+                           value="{{ agendamento[3] }}" required>
+                </div>
+
+                <div class="campo">
+                    <label for="horario">Horário</label>
+                    <input type="time" id="horario"
+                           name="horario"
+                           value="{{ agendamento[4] }}" required>
+                </div>
+
+                <div class="campo">
+                    <label for="status_agendamento">Status</label>
+                    <select id="status_agendamento" name="status_agendamento" required>
+                        {% for status in ['Pendente', 'Confirmado', 'Concluído', 'Cancelado'] %}
+                            <option value="{{ status }}"
+                                {% if status == agendamento[5] %}selected{% endif %}>
+                                {{ status }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="acoes-formulario">
+                    <a href="/agendamentos" class="btn-secundario">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-nexus">
+                        Salvar alterações
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+       <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
+</body>
+</html>
