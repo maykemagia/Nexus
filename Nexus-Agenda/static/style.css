@@ -2060,3 +2060,310 @@ select:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* =========================================
+   NEXUS GOLD — DASHBOARD DE GESTÃO
+========================================= */
+
+.dashboard {
+    width: auto;
+    min-width: 0;
+}
+
+.dashboard-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card-detail {
+    display: block;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.card .valor-card {
+    font-size: clamp(23px, 2.2vw, 34px);
+    overflow-wrap: anywhere;
+}
+
+.dashboard-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 22px;
+}
+
+.dashboard-welcome > div:first-child {
+    flex: 1 1 280px;
+}
+
+.dashboard-welcome p {
+    max-width: 600px;
+    line-height: 1.8;
+}
+
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dashboard-agenda {
+    margin-top: 22px;
+}
+
+.dashboard-agenda .tabela-header {
+    align-items: center;
+}
+
+.agenda-description {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.agenda-horario {
+    color: var(--primary-light) !important;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.agenda-vazia {
+    padding: 35px 16px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: var(--table-radius);
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.agenda-vazia-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--primary);
+    font-size: 24px;
+}
+
+.agenda-vazia h3 {
+    margin: 5px 0;
+    font: 600 23px var(--display-font);
+}
+
+.agenda-vazia p {
+    margin: 6px 0 20px;
+    color: var(--muted);
+}
+
+.dashboard-footer {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.dashboard-footer span {
+    padding: 0 5px;
+    color: var(--primary);
+}
+
+@media (max-width: 1250px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-welcome {
+        align-items: stretch;
+    }
+
+    .quick-actions {
+        flex-direction: column;
+    }
+
+    .quick-actions a {
+        width: 100%;
+    }
+
+    .dashboard-agenda .tabela-header {
+        align-items: flex-start;
+    }
+
+    .dashboard-agenda .tabela-header > a {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .dashboard-agenda .tabela-header {
+        flex-direction: column;
+    }
+}
+
+/* Identificação visual dos status dos agendamentos */
+.status-agendamento {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    background: #252525;
+    color: #f3f3f3;
+}
+
+/* Atendimento pendente */
+.status-agendamento:has(:not(*)) {
+    background: #252525;
+}
+
+/* Cores aplicadas conforme o texto do status */
+.status-agendamento {
+    border: 1px solid #444444;
+}
+
+
+/* =========================================
+   NEXUS AGENDA — CORES DOS STATUS
+   ========================================= */
+
+.status-agendamento.status-pendente {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: #3b2f16 !important;
+    color: #f5c96a !important;
+    border: 1px solid #806326 !important;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-agendamento.status-confirmado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: #153629 !important;
+    color: #83e0b0 !important;
+    border: 1px solid #286748 !important;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-agendamento.status-concluido {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: #183344 !important;
+    color: #83c9ef !important;
+    border: 1px solid #285c78 !important;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-agendamento.status-cancelado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: #3a2023 !important;
+    color: #f3a0a7 !important;
+    border: 1px solid #79373d !important;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+
+/* Correção da cor azul para o status Concluído */
+.status-agendamento.status-concluido,
+.status-agendamento.status-concluído {
+    background-color: #183344 !important;
+    color: #83c9ef !important;
+    border: 1px solid #285c78 !important;
+}
+/* Resumo dos agendamentos */
+.resumo-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.resumo-status-item {
+display: flex;
+flex-direction: column;
+gap: 10px;
+padding: 20px;
+border-radius: 14px;
+background: linear-gradient(145deg, #1c1c1c, #111111);
+border: 1px solid rgba(212, 175, 55, 0.3);
+box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+transition: transform 0.2s ease, border-color 0.2s ease,
+box-shadow 0.2s ease;
+}
+
+.resumo-status-item {
+transform: translateY(-3px);
+border-color: rgba(212, 175, 55, 0.75);
+box-shadow: 0 8px 22px rgba(212, 175, 55, 0.08);
+}
+
+.resumo-status-item span {
+color: #d4d4d4;
+font-size: 14px;
+font-weight: 600;
+}
+
+.resumo-status-item strong {
+font-size: 30px;
+font-weight: 700;
+}
+
+.resumo-status-item.status-pendente strong {
+    color: #ca8a04;
+}
+
+.resumo-status-item.status-confirmado strong {
+    color: #16a34a;
+}
+
+.resumo-status-item.status-concluido strong {
+    color: #2563eb;
+}
+
+.resumo-status-item.status-cancelado strong {
+    color: #dc2626;
+}
+
+@media (max-width: 700px) {
+    .resumo-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* FINAL DO CODIGO */

@@ -1,8 +1,27 @@
 from flask import Flask, request, redirect, render_template
 from banco import conectar_banco
+from datetime import time, timedelta
 
 
 app = Flask(__name__)
+
+
+def horario_em_minutos(valor):
+    """Converte horários do MySQL ou formulário para minutos."""
+    if isinstance(valor, timedelta):
+        total_segundos = int(valor.total_seconds())
+        return total_segundos // 60
+
+    if isinstance(valor, time):
+        return valor.hour * 60 + valor.minute
+
+    texto = str(valor).strip()
+
+    partes = texto.split(":")
+    if len(partes) < 2 or not partes[0] or not partes[1]:
+        raise ValueError(f"Horário inválido: {valor!r}")
+
+    return int(partes[0]) * 60 + int(partes[1])
 
 
 def horario_tem_conflito(
@@ -12,7 +31,7 @@ def horario_tem_conflito(
     id_servico,
     ignorar_id=None
 ):
-    # Descobre a duração do serviço solicitado.
+    # Descobre a duração do novo serviço.
     cursor.execute("""
         SELECT duracao_minutos
         FROM servicos
@@ -26,9 +45,7 @@ def horario_tem_conflito(
 
     duracao_nova = int(servico[0])
 
-    # Converte os horários para minutos desde a meia-noite.
-    hora, minuto = map(int, str(horario)[:5].split(":"))
-    inicio_novo = hora * 60 + minuto
+    inicio_novo = horario_em_minutos(horario)
     fim_novo = inicio_novo + duracao_nova
 
     # Busca os agendamentos da mesma data.
@@ -42,9 +59,9 @@ def horario_tem_conflito(
             ON a.id_servico = s.id_servico
         WHERE a.data_agendamento = %s
     """
+
     parametros = [data_agendamento]
 
-    # Na edição, ignora o próprio agendamento.
     if ignorar_id is not None:
         sql += " AND a.id_agendamento != %s"
         parametros.append(ignorar_id)
@@ -52,18 +69,11 @@ def horario_tem_conflito(
     cursor.execute(sql, tuple(parametros))
 
     for _, horario_existente, duracao_existente in cursor.fetchall():
-        hora_existente, minuto_existente = map(
-            int, str(horario_existente)[:5].split(":")
-        )
-
-        inicio_existente = hora_existente * 60 + minuto_existente
+        inicio_existente = horario_em_minutos(horario_existente)
         fim_existente = inicio_existente + int(duracao_existente)
 
-        # Existe conflito se os intervalos se sobrepõem.
-        if (
-            inicio_novo < fim_existente
-            and fim_novo > inicio_existente
-        ):
+        # Bloqueia somente horários que se sobrepõem.
+        if inicio_novo < fim_existente and fim_novo > inicio_existente:
             return True
 
     return False
@@ -78,6 +88,7 @@ def inicio():
         conexao = conectar_banco()
         cursor = conexao.cursor()
 
+        # Indicadores gerais.
         cursor.execute("SELECT COUNT(*) FROM clientes")
         total_clientes = cursor.fetchone()[0]
 
@@ -87,15 +98,118 @@ def inicio():
         cursor.execute("SELECT COUNT(*) FROM agendamentos")
         total_agendamentos = cursor.fetchone()[0]
 
+        # Busca os agendamentos de hoje.
+        cursor.execute("""
+            SELECT
+                a.id_agendamento,
+                c.nome,
+                s.nome,
+                a.horario,
+                a.status_agendamento,
+                s.preco
+            FROM agendamentos AS a
+            INNER JOIN clientes AS c
+                ON a.id_cliente = c.id_cliente
+            INNER JOIN servicos AS s
+                ON a.id_servico = s.id_servico
+            
+            WHERE
+                a.data_agendamento = CURDATE()
+                AND LOWER(TRIM(a.status_agendamento))
+                    IN ('pendente', 'confirmado')
+            ORDER BY a.horario
+
+        """)
+
+        resultados = cursor.fetchall()
+
+
+        # Busca os 5 próximos atendimentos pendentes ou confirmados.
+        cursor.execute("""
+            SELECT
+                a.id_agendamento,
+                a.data_agendamento,
+                a.horario,
+                c.nome,
+                s.nome,
+                a.status_agendamento
+            FROM agendamentos AS a
+            INNER JOIN clientes AS c
+                ON a.id_cliente = c.id_cliente
+            INNER JOIN servicos AS s
+                ON a.id_servico = s.id_servico
+            WHERE
+                a.data_agendamento >= CURDATE()
+                AND LOWER(TRIM(a.status_agendamento))
+                    IN ('pendente', 'confirmado')
+            ORDER BY
+                a.data_agendamento ASC,
+                a.horario ASC
+            LIMIT 5
+        """)
+
+        proximos_agendamentos = []
+
+        for agendamento in cursor.fetchall():
+            (
+                id_agendamento,
+                data_agendamento,
+                horario,
+                cliente,
+                servico,
+                status
+            ) = agendamento
+
+            proximos_agendamentos.append({
+                "id": id_agendamento,
+                "data": data_agendamento.strftime("%d/%m/%Y"),
+                "horario": str(horario)[:5],
+                "cliente": cliente,
+                "servico": servico,
+                "status": str(status).strip()
+            })
+
+
+        # Prepara os dados para exibição no painel.
+        agenda_hoje = []
+        faturamento_previsto = 0
+
+        for agendamento in resultados:
+            id_agendamento, cliente, servico, horario, status, preco = agendamento
+
+            status_texto = str(status).strip()
+            status_normalizado = status_texto.casefold()
+
+            # Considera apenas agendamentos pendentes ou confirmados.
+            if status_normalizado in ("pendente", "confirmado"):
+                faturamento_previsto += float(preco or 0)
+
+            agenda_hoje.append({
+                "id": id_agendamento,
+                "cliente": cliente,
+                "servico": servico,
+                "horario": str(horario)[:5],
+                "status": status_texto
+            })
+
+        total_agendamentos_hoje = len(agenda_hoje)
+
+        
         return render_template(
             "index.html",
             total_clientes=total_clientes,
             total_servicos=total_servicos,
-            total_agendamentos=total_agendamentos
+            total_agendamentos=total_agendamentos,
+            total_agendamentos_hoje=total_agendamentos_hoje,
+            faturamento_previsto=faturamento_previsto,
+            agenda_hoje=agenda_hoje,
+            proximos_agendamentos=proximos_agendamentos
         )
 
+
     except Exception as erro:
-        return f"Erro ao carregar o painel: {erro}", 500
+        app.logger.exception("Erro ao carregar o painel")
+        return "Erro ao carregar o painel. Verifique o banco de dados.", 500
 
     finally:
         if cursor is not None:
@@ -103,6 +217,8 @@ def inicio():
 
         if conexao is not None and conexao.is_connected():
             conexao.close()
+
+
 @app.route("/clientes")
 def clientes():
     conexao = None
@@ -451,7 +567,13 @@ def agendamentos():
         """)
         lista_servicos = cursor.fetchall()
 
-        cursor.execute("""
+      
+        # Lê os filtros enviados pela página.
+        data_filtro = request.args.get("data", "").strip()
+        status_filtro = request.args.get("status", "").strip()
+
+        # Monta a consulta sem alterar os registros do banco.
+        consulta = """
             SELECT
                 a.id_agendamento,
                 c.nome,
@@ -464,29 +586,81 @@ def agendamentos():
                 ON a.id_cliente = c.id_cliente
             INNER JOIN servicos AS s
                 ON a.id_servico = s.id_servico
-            ORDER BY a.data_agendamento, a.horario
-        """)
+        """
+
+        filtros = []
+        parametros = []
+
+        if data_filtro:
+            filtros.append("a.data_agendamento = %s")
+            parametros.append(data_filtro)
+
+        if status_filtro in (
+            "Pendente",
+            "Confirmado",
+            "Concluído",
+            "Cancelado"
+        ):
+            filtros.append(
+                "LOWER(TRIM(a.status_agendamento)) = LOWER(%s)"
+            )
+            parametros.append(status_filtro)
+
+        if filtros:
+            consulta += " WHERE " + " AND ".join(filtros)
+
+        consulta += " ORDER BY a.data_agendamento, a.horario"
+
+        cursor.execute(consulta, parametros)
         lista_agendamentos = cursor.fetchall()
 
+                # Conta os agendamentos por status, respeitando os filtros.
+        resumo_status = {
+            "Pendente": 0,
+            "Confirmado": 0,
+            "Concluído": 0,
+            "Cancelado": 0
+        }
+
+        for agendamento in lista_agendamentos:
+            status = str(agendamento[5]).strip()
+
+            for status_conhecido in resumo_status:
+                if status.lower() == status_conhecido.lower():
+                    resumo_status[status_conhecido] += 1
+                    break
+
+        
         return render_template(
             "agendamentos.html",
             agendamentos=lista_agendamentos,
             clientes=lista_clientes,
-            servicos=lista_servicos
+            servicos=lista_servicos,
+            data_filtro=data_filtro,
+            status_filtro=status_filtro,
+            resumo_status=resumo_status
         )
 
-    except Exception:
+
+    
+    except Exception as erro:
+        app.logger.exception("Erro ao processar agendamento")
+
         if conexao is not None and conexao.is_connected():
             conexao.rollback()
 
         if request.method == "POST":
-            return redirect("/agendamentos?erro=salvar")
+            return (
+                f"Erro ao salvar agendamento: {erro}",
+                500
+            )
 
         return (
             "Não foi possível carregar os agendamentos. "
-            "Verifique a conexão com o banco de dados.",
+            "Verifique o terminal para ver o erro.",
             500
         )
+
 
     finally:
         if cursor is not None:
@@ -589,11 +763,18 @@ def editar_agendamento(id_agendamento):
             servicos=lista_servicos
         )
 
+   
     except Exception:
+        app.logger.exception(
+            "Erro ao editar agendamento ID %s",
+            id_agendamento
+        )
+
         if conexao is not None and conexao.is_connected():
             conexao.rollback()
 
         return redirect("/agendamentos?erro=editar")
+
 
     finally:
         if cursor is not None:

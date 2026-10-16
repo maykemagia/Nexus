@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS | Agenda</title>
+    <title>NEXUS | Painel de Gestão</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -19,38 +19,195 @@
         </nav>
     </aside>
 
-    <main>
+    <main class="dashboard">
         <header class="topbar">
             <div>
+                <span class="nexus-label">CENTRAL DE GESTÃO</span>
                 <h2>Painel inicial</h2>
-                <p>Bem-Vindo a Nexus Agenda.</p>
+                <p>Bem-vindo ao NEXUS Agenda.</p>
             </div>
+
+            <a href="/agendamentos" class="btn-cadastrar">
+                + Novo agendamento
+            </a>
         </header>
 
-        <section class="cards">
+        <section class="cards dashboard-cards">
             <article class="card">
                 <p>Total de clientes</p>
                 <h3>{{ total_clientes }}</h3>
+                <span class="card-detail">Clientes cadastrados</span>
             </article>
 
             <article class="card">
                 <p>Serviços cadastrados</p>
                 <h3>{{ total_servicos }}</h3>
+                <span class="card-detail">Serviços disponíveis</span>
             </article>
 
             <article class="card">
-                <p>Agendamentos</p>
-                <h3>{{ total_agendamentos }}</h3>
+                <p>Agendamentos de hoje</p>
+                <h3>{{ total_agendamentos_hoje }}</h3>
+                <span class="card-detail">Compromissos para hoje</span>
+            </article>
+
+            <article class="card">
+                <p>Faturamento previsto hoje</p>
+                <h3 class="valor-card">
+                    R$ {{ "%.2f"|format(faturamento_previsto)|replace(".", ",") }}
+                </h3>
+                <span class="card-detail">Serviços não cancelados</span>
             </article>
         </section>
 
-        <section class="welcome">
-            <h3>Seu negócio do melhor jeito.</h3>
-            <p>
-                Gerencie Clientes, Serviços e Horários em um único lugar.
-            </p>
+        <section class="welcome dashboard-welcome">
+            <div>
+                <span class="nexus-label">NEXUS GOLD</span>
+                <h3>Seu negócio. Sob controle.</h3>
+                <p>
+                    Gerencie clientes, serviços e horários em um só lugar.
+                    Organize o dia e acompanhe seus atendimentos.
+                </p>
+            </div>
+
+            <div class="quick-actions">
+                <a href="/clientes/cadastrar" class="btn-secundario">
+                    + Cadastrar cliente
+                </a>
+                <a href="/servicos" class="btn-secundario">
+                    Gerenciar serviços
+                </a>
+            </div>
         </section>
+
+        <section class="agendamentos-card dashboard-agenda">
+            <div class="tabela-header">
+                <div>
+                    <span class="nexus-label">ACOMPANHAMENTO</span>
+                    <h2>Agenda de hoje</h2>
+                    <p class="agenda-description">
+                        Confira os horários e os próximos atendimentos.
+                    </p>
+                </div>
+
+                <a href="/agendamentos" class="btn-secundario">
+                    Ver todos
+                </a>
+            </div>
+
+            {% if agenda_hoje %}
+                <div class="tabela-wrapper">
+                    <table class="tabela-nexus">
+                        <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>Cliente</th>
+                                <th>Serviço</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in agenda_hoje %}
+                                <tr>
+                                    <td class="agenda-horario">
+                                        {{ item.horario }}
+                                    </td>
+                                    <td>{{ item.cliente }}</td>
+                                    <td>{{ item.servico }}</td>
+                                    
+                                    <td>
+                                        <span class="status-agendamento status-{{ item.status|lower|replace('ó', 'o')|replace('ã', 'a')|replace(' ', '-') }}">
+                                            {{ item.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a
+                                            href="{{ url_for('editar_agendamento', id_agendamento=item.id) }}"
+                                            class="btn-secundario"
+                                        >
+                                            Editar
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="agenda-vazia">
+                    <span class="agenda-vazia-icon">—</span>
+                    <h3>Nenhum atendimento para hoje</h3>
+                    <p>
+                        Seus novos agendamentos aparecerão aqui.
+                    </p>
+                    <a href="/agendamentos" class="btn-primary">
+                        Criar agendamento
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="agendamentos-card dashboard-agenda">
+            <div class="tabela-header">
+                <div>
+                    <span class="nexus-label">PRÓXIMOS COMPROMISSOS</span>
+                    <h2>Próximos atendimentos</h2>
+                    <p class="agenda-description">
+                        Os próximos 5 atendimentos pendentes ou confirmados.
+                    </p>
+                </div>
+
+                <a href="/agendamentos" class="btn-secundario">
+                    Ver agenda completa
+                </a>
+            </div>
+
+            {% if proximos_agendamentos %}
+                <div class="tabela-wrapper">
+                    <table class="tabela-nexus">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Cliente</th>
+                                <th>Serviço</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in proximos_agendamentos %}
+                                <tr>
+                                    <td>{{ item.data }}</td>
+                                    <td class="agenda-horario">
+                                        {{ item.horario }}
+                                    </td>
+                                    <td>{{ item.cliente }}</td>
+                                    <td>{{ item.servico }}</td>
+                                    <td>
+                                        <span class="status-agendamento status-{{ item.status|lower|replace('ó', 'o')|replace('ã', 'a')|replace(' ', '-') }}">
+                                            {{ item.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="agenda-vazia">
+                    <h3>Nenhum próximo atendimento</h3>
+                    <p>Os novos agendamentos aparecerão aqui.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <footer class="dashboard-footer">
+            NEXUS Agenda <span>•</span> Desenvolvido por Mayke
+        </footer>
     </main>
-       <footer class="footer"> Nexus Agenda | Desenvolvido por Mayke. </footer>
 </body>
 </html>

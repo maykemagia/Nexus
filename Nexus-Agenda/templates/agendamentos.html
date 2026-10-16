@@ -114,6 +114,98 @@
             </form>
         </section>
 
+                <section class="agendamentos-card">
+            <div class="tabela-header">
+                <div>
+                    <h2>Filtrar agendamentos</h2>
+                    <p>Encontre agendamentos por data ou status.</p>
+                </div>
+            </div>
+
+            <form method="GET"
+                  action="{{ url_for('agendamentos') }}"
+                  class="agendamentos-form">
+
+                <div class="campo">
+                    <label for="filtro-data">Data</label>
+                    <input
+                        type="date"
+                        id="filtro-data"
+                        name="data"
+                        value="{{ data_filtro }}"
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="filtro-status">Status</label>
+                    <select id="filtro-status" name="status">
+                        <option value="">Todos os status</option>
+
+                        <option value="Pendente"
+                            {% if status_filtro == 'Pendente' %}selected{% endif %}>
+                            Pendente
+                        </option>
+
+                        <option value="Confirmado"
+                            {% if status_filtro == 'Confirmado' %}selected{% endif %}>
+                            Confirmado
+                        </option>
+
+                        <option value="Concluído"
+                            {% if status_filtro == 'Concluído' %}selected{% endif %}>
+                            Concluído
+                        </option>
+
+                        <option value="Cancelado"
+                            {% if status_filtro == 'Cancelado' %}selected{% endif %}>
+                            Cancelado
+                        </option>
+                    </select>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button type="submit" class="btn-nexus">
+                        Filtrar
+                    </button>
+
+                    <a href="{{ url_for('agendamentos') }}"
+                       class="btn-secundario">
+                        Limpar filtros
+                    </a>
+                </div>
+            </form>
+        </section>
+        <section class="agendamentos-card">
+            <div class="tabela-header">
+                <div>
+                    <h2>Resumo dos agendamentos</h2>
+                    <p>Quantidade por status nos resultados exibidos.</p>
+                </div>
+            </div>
+
+            <div class="resumo-status-grid">
+                <div class="resumo-status-item status-pendente">
+                    <span>Pendentes</span>
+                    <strong>{{ resumo_status['Pendente'] }}</strong>
+                </div>
+
+                <div class="resumo-status-item status-confirmado">
+                    <span>Confirmados</span>
+                    <strong>{{ resumo_status['Confirmado'] }}</strong>
+                </div>
+
+                <div class="resumo-status-item status-concluido">
+                    <span>Concluídos</span>
+                    <strong>{{ resumo_status['Concluído'] }}</strong>
+                </div>
+
+                <div class="resumo-status-item status-cancelado">
+                    <span>Cancelados</span>
+                    <strong>{{ resumo_status['Cancelado'] }}</strong>
+                </div>
+            </div>
+        </section>
+        
         <section class="agendamentos-card">
             <div class="tabela-header">
                 <div>
@@ -145,8 +237,8 @@
                             <td>{{ agendamento[2] }}</td>
                             <td>{{ agendamento[3] }}</td>
                             <td>{{ agendamento[4] }}</td>
-                            <td>
-                                <span class="status-agendamento">
+                            <td>     
+                                <span class="status-agendamento status-{{ agendamento[5]|lower|replace('ó', 'o')|replace('ã', 'a')|replace(' ', '-') }}">
                                     {{ agendamento[5] }}
                                 </span>
                             </td>
